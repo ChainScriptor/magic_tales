@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import TypingBubble from './TypingBubble';
 import ImageUploadArea from './ImageUploadArea';
 import ImageReveal from './ui/image-tiles';
+import Slideshow from './ui/Slideshow';
 
 interface BookCreationProps {
   onClose: () => void;
@@ -20,6 +21,8 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
   const [characterName, setCharacterName] = useState('');
   const [characterDescription, setCharacterDescription] = useState<string | null>(null);
   const [characterAge, setCharacterAge] = useState('');
+  const [feedbackAccepted, setFeedbackAccepted] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
 
   const handleFileUpload = (file: File) => {
     const imageUrl = URL.createObjectURL(file);
@@ -64,12 +67,20 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
 
   const handleImageFeedback = (liked: boolean) => {
     if (liked) {
-      // Proceed to next step or submit
-      console.log('User liked the image, proceeding...');
+      setFeedbackAccepted(true);
     } else {
       // Regenerate or go back
       console.log('User wants to regenerate...');
     }
+  };
+
+  const submitEmail = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(userEmail)) {
+      return;
+    }
+    console.log('Saving email:', userEmail);
+    // Here you can persist email and proceed
   };
 
   return (
@@ -262,8 +273,45 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
               </div>
             )}
 
+            {/* Email Capture Prompt after positive feedback */}
+            {feedbackAccepted && (
+              <div className="mt-6 animate-in fade-in duration-300">
+                <TypingBubble
+                  text="Almost there! Let's save your progress. What is your email address?"
+                  onFinished={() => {}}
+                  darkMode={true}
+                />
+                <div className="mt-4">
+                  <div className="text-center text-sm text-gray-300 mb-2">
+                    By proceeding, you agree to our{' '}
+                    <a href="#" className="underline hover:opacity-90">Terms of Service</a>{' '}
+                    and{' '}
+                    <a href="#" className="underline hover:opacity-90">Privacy Policy</a>.
+                  </div>
+                  <input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={userEmail}
+                    onChange={(e) => setUserEmail(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') submitEmail();
+                    }}
+                    className="w-full px-4 py-3 bg-white rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#1a47ff] focus:border-transparent text-gray-800 placeholder-gray-400"
+                  />
+                  <motion.button
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    onClick={submitEmail}
+                    className="mt-3 w-full px-6 py-2.5 rounded-lg btn-glossy text-white text-sm font-semibold"
+                  >
+                    Continue
+                  </motion.button>
+                </div>
+              </div>
+            )}
+
             {/* Feedback Buttons - Show after fifth bubble finishes */}
-            {fifthBubbleFinished && (
+            {fifthBubbleFinished && !feedbackAccepted && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -272,13 +320,13 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
               >
                 <button
                   onClick={() => handleImageFeedback(false)}
-                  className="px-6 py-3 bg-[#1a1f3a] border-2 border-white text-white rounded-lg hover:bg-[#2a2f4a] transition-colors font-medium"
+                  className="px-6 py-2.5 rounded-lg btn-glossy text-white text-sm font-semibold"
                 >
                   I don't like it
                 </button>
                 <button
                   onClick={() => handleImageFeedback(true)}
-                  className="px-6 py-3 bg-white border-2 border-[#1a1f3a] text-[#1a1f3a] rounded-lg hover:bg-gray-100 transition-colors font-medium"
+                  className="px-6 py-2.5 rounded-lg btn-glossy text-white text-sm font-semibold"
                 >
                   Looks great!
                 </button>
@@ -389,11 +437,39 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
                 </div>
                 
                 <div className="rounded-xl overflow-hidden bg-gray-100 relative">
-                  <img
-                    src={generatedImage}
-                    alt="Generated character story"
-                    className="w-full h-auto object-cover"
-                  />
+                  {(() => {
+                    const fairytaleImages: string[] = [
+                      '/fairytales/download (6).jpeg',
+                      '/fairytales/download (7).jpeg',
+                      '/fairytales/download (8).jpeg',
+                      '/fairytales/download (9).jpeg',
+                      '/fairytales/download (10).jpeg',
+                      '/fairytales/download (11).jpeg',
+                      '/fairytales/download (12).jpeg',
+                      '/fairytales/download (13).jpeg',
+                      '/fairytales/download (14).jpeg',
+                      '/fairytales/download (15).jpeg',
+                      '/fairytales/download (16).jpeg',
+                      '/fairytales/download (17).jpeg',
+                      '/fairytales/download (18).jpeg',
+                    ];
+                    const slideshowImages = [generatedImage, ...fairytaleImages].filter(Boolean) as string[];
+                    return (
+                      <Slideshow
+                        images={slideshowImages}
+                        intervalMs={2000}
+                        imgClassName="w-full h-auto object-cover"
+                        alt="Generated character story"
+                      />
+                    );
+                  })()}
+                  {feedbackAccepted && (
+                    <img
+                      src={generatedImage || ''}
+                      alt="Selected thumbnail"
+                      className="absolute bottom-4 left-4 w-20 h-20 rounded-xl border-2 border-white shadow-lg object-cover"
+                    />
+                  )}
                 </div>
               </div>
             </motion.div>
