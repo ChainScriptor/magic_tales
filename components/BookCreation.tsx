@@ -9,13 +9,17 @@ interface BookCreationProps {
 }
 
 const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [firstBubbleFinished, setFirstBubbleFinished] = useState(false);
   const [secondBubbleFinished, setSecondBubbleFinished] = useState(false);
   const [thirdBubbleFinished, setThirdBubbleFinished] = useState(false);
+  const [fourthBubbleFinished, setFourthBubbleFinished] = useState(false);
+  const [fifthBubbleFinished, setFifthBubbleFinished] = useState(false);
   const [characterName, setCharacterName] = useState('');
   const [characterDescription, setCharacterDescription] = useState<string | null>(null);
+  const [characterAge, setCharacterAge] = useState('');
 
   const handleFileUpload = (file: File) => {
     const imageUrl = URL.createObjectURL(file);
@@ -43,7 +47,29 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
 
   const handleDescriptionSelect = (description: string) => {
     setCharacterDescription(description);
-    // Here you would proceed to the next step or submit
+    setStep(4);
+  };
+
+  const handleAgeSubmit = () => {
+    if (characterAge.trim()) {
+      setStep(5);
+      // Simulate image generation - in real app, this would call an API
+      setTimeout(() => {
+        // For demo, using a placeholder. In production, this would be the generated image URL
+        setGeneratedImage('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=800&fit=crop');
+        setFifthBubbleFinished(true);
+      }, 2000);
+    }
+  };
+
+  const handleImageFeedback = (liked: boolean) => {
+    if (liked) {
+      // Proceed to next step or submit
+      console.log('User liked the image, proceeding...');
+    } else {
+      // Regenerate or go back
+      console.log('User wants to regenerate...');
+    }
   };
 
   return (
@@ -155,7 +181,7 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
             )}
 
             {/* Description Buttons - Show after third bubble finishes */}
-            {thirdBubbleFinished && (
+            {thirdBubbleFinished && step === 3 && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -183,6 +209,82 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
               </motion.div>
             )}
 
+            {/* Fourth Typing Bubble - Show after description is selected */}
+            {step === 4 && (
+              <div className="animate-in fade-in duration-300">
+                <TypingBubble
+                  text={`Got it. How many years old is ${characterName || 'they'}?`}
+                  onFinished={() => setFourthBubbleFinished(true)}
+                />
+              </div>
+            )}
+
+            {/* Age Input - Show after fourth bubble finishes */}
+            {fourthBubbleFinished && step === 4 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="mt-6"
+              >
+                <input
+                  type="text"
+                  placeholder="Enter age..."
+                  value={characterAge}
+                  onChange={(e) => setCharacterAge(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && characterAge.trim()) {
+                      handleAgeSubmit();
+                    }
+                  }}
+                  className="w-full px-4 py-3 bg-white rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#1a47ff] focus:border-transparent text-gray-800 placeholder-gray-400"
+                />
+                {characterAge.trim() && (
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    onClick={handleAgeSubmit}
+                    className="mt-3 w-full px-6 py-2.5 rounded-lg btn-glossy text-white text-sm font-semibold"
+                  >
+                    Continue
+                  </motion.button>
+                )}
+              </motion.div>
+            )}
+
+            {/* Fifth Typing Bubble - Show after age is submitted */}
+            {step === 5 && (
+              <div className="animate-in fade-in duration-300">
+                <TypingBubble
+                  text={`Here's ${characterName || 'them'}! What do you think?`}
+                  onFinished={() => setFifthBubbleFinished(true)}
+                />
+              </div>
+            )}
+
+            {/* Feedback Buttons - Show after fifth bubble finishes */}
+            {fifthBubbleFinished && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="mt-6 flex gap-3 justify-center flex-wrap"
+              >
+                <button
+                  onClick={() => handleImageFeedback(false)}
+                  className="px-6 py-3 bg-[#1a1f3a] border-2 border-white text-white rounded-lg hover:bg-[#2a2f4a] transition-colors font-medium"
+                >
+                  I don't like it
+                </button>
+                <button
+                  onClick={() => handleImageFeedback(true)}
+                  className="px-6 py-3 bg-white border-2 border-[#1a1f3a] text-[#1a1f3a] rounded-lg hover:bg-gray-100 transition-colors font-medium"
+                >
+                  Looks great!
+                </button>
+              </motion.div>
+            )}
+
             {/* Video Reveal Section - Show below upload area */}
             {firstBubbleFinished && (
               <div className="flex justify-center mt-8 mb-6">
@@ -198,8 +300,8 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
             )}
           </div>
 
-          {/* Right Side - Uploaded Image Preview */}
-          {uploadedImage && (
+          {/* Right Side - Uploaded Image Preview or Generated Image */}
+          {step < 5 && uploadedImage && (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -213,18 +315,85 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
                     alt="Uploaded character"
                     className="w-full h-full object-cover"
                   />
+                  
+                  {/* Character Description Badge - Top Right */}
+                  {characterDescription && characterDescription !== 'skip' && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="absolute top-4 right-4"
+                    >
+                      <div className="bg-gray-800 rounded-lg px-4 py-2 shadow-lg">
+                        <p className="text-white font-semibold text-sm capitalize">{characterDescription}</p>
+                      </div>
+                    </motion.div>
+                  )}
+                  
                   {/* Character Name Overlay - Bottom */}
                   {characterName.trim() && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="absolute bottom-4 left-0 right-0 px-4"
+                      className="absolute bottom-20 left-0 right-0 px-4"
                     >
                       <div className="bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg">
                         <p className="text-gray-800 font-semibold text-center">{characterName}</p>
                       </div>
                     </motion.div>
                   )}
+                  
+                  {/* Character Age Overlay - Bottom */}
+                  {characterAge.trim() && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="absolute bottom-12 left-0 right-0 px-4"
+                    >
+                      <div className="bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg">
+                        <p className="text-gray-800 font-semibold text-center">{characterAge} years old</p>
+                      </div>
+                    </motion.div>
+                  )}
+                  
+                  {/* Character Description Overlay - Bottom (if skip) */}
+                  {characterDescription === 'skip' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="absolute bottom-4 left-0 right-0 px-4"
+                    >
+                      <div className="bg-gray-800/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg">
+                        <p className="text-white font-semibold text-center capitalize">{characterDescription}</p>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Generated Image Preview - Step 5 */}
+          {step === 5 && generatedImage && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+              className="flex-1 w-full lg:max-w-md flex justify-center lg:justify-start"
+            >
+              <div className="bg-white rounded-2xl p-4 shadow-xl overflow-hidden w-full max-w-md relative">
+                {/* Page Number Badge - Top Right */}
+                <div className="absolute top-6 right-6 z-10">
+                  <div className="bg-[#1a1f3a] rounded-lg px-3 py-1.5 shadow-lg">
+                    <p className="text-white font-semibold text-sm">12</p>
+                  </div>
+                </div>
+                
+                <div className="rounded-xl overflow-hidden bg-gray-100 relative">
+                  <img
+                    src={generatedImage}
+                    alt="Generated character story"
+                    className="w-full h-auto object-cover"
+                  />
                 </div>
               </div>
             </motion.div>
