@@ -1,0 +1,79 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MagicTales Studio - Design & Story-Driven Visuals</title>
+    <link rel="icon" type="image/png" href="/logo/2.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Figtree', sans-serif;
+        background-color: #ebe6e4; /* Matching the soft grey/beige background from the image */
+        color: #000;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+      }
+      .text-everyone {
+        font-family: 'Instrument Serif', serif;
+        font-style: italic;
+        font-weight: 400;
+        font-size: 1.1em;
+      }
+      .grid-lines {
+        position: fixed;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 1400px;
+        height: 100%;
+        border-left: 1px solid rgba(0,0,0,0.03);
+        border-right: 1px solid rgba(0,0,0,0.03);
+        pointer-events: none;
+        z-index: 0;
+      }
+      .btn-glossy {
+        background: linear-gradient(180deg, #333 0%, #000 100%);
+        box-shadow: 0 4px 14px 0 rgba(0,0,0,0.39);
+        transition: all 0.2s ease;
+      }
+      .btn-glossy:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.23);
+      }
+      .btn-outline-soft {
+        background: rgba(255, 255, 255, 0.4);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(4px);
+      }
+      @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(6deg); }
+        50% { transform: translateY(-15px) rotate(8deg); }
+      }
+      .float-animation {
+        animation: float 5s ease-in-out infinite;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.34.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
