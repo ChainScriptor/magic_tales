@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { IconUpload } from '@tabler/icons-react';
 import { motion } from 'framer-motion';
+import { useLanguage } from '../contexts/LanguageContext';
 
 function GridPattern() {
     const columns = 41;
@@ -31,6 +32,7 @@ interface ImageUploadAreaProps {
 }
 
 const ImageUploadArea: React.FC<ImageUploadAreaProps> = ({ onFileUpload }) => {
+    const { t } = useLanguage();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isDragActive, setIsDragActive] = useState(false);
 
@@ -88,10 +90,10 @@ const ImageUploadArea: React.FC<ImageUploadAreaProps> = ({ onFileUpload }) => {
                 </div>
                 <div className="flex flex-col items-center justify-center relative z-10">
                     <p className="relative z-20 font-sans font-bold text-neutral-700 text-base">
-                        Upload file
+                        {t('imageUpload.uploadFile')}
                     </p>
                     <p className="relative z-20 font-sans font-normal text-neutral-400 text-base mt-2">
-                        Drag or drop your files here or click to upload (PNG, JPG only)
+                        {t('imageUpload.dragDrop')}
                     </p>
                     <div className="relative w-full mt-10 max-w-xl mx-auto">
                         {!isDragActive && !dropzoneActive ? (
@@ -113,7 +115,7 @@ const ImageUploadArea: React.FC<ImageUploadAreaProps> = ({ onFileUpload }) => {
                                 className="relative z-40 bg-white flex items-center justify-center h-32 mt-4 w-full max-w-[8rem] mx-auto rounded-md shadow-[0px_10px_50px_rgba(0,0,0,0.1)]"
                             >
                                 <p className="text-neutral-600 flex flex-col items-center">
-                                    Drop it
+                                    {t('imageUpload.dropIt')}
                                     <IconUpload className="h-4 w-4 text-neutral-600" />
                                 </p>
                             </motion.div>

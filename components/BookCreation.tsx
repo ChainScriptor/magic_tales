@@ -4,12 +4,15 @@ import TypingBubble from './TypingBubble';
 import ImageUploadArea from './ImageUploadArea';
 import ImageReveal from './ui/image-tiles';
 import Slideshow from './ui/Slideshow';
+import { useLanguage } from '../contexts/LanguageContext';
+import LanguageSelector from './LanguageSelector';
 
 interface BookCreationProps {
   onClose: () => void;
 }
 
 const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
+  const { t } = useLanguage();
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
@@ -100,20 +103,21 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
 
           {/* Action Buttons */}
           <div className="hidden md:flex items-center space-x-3">
+            <LanguageSelector />
             <button className="px-6 py-2.5 rounded-lg btn-outline-soft text-sm font-medium hover:bg-white transition-all">
-              Login
+              {t('nav.login')}
             </button>
             <button className="px-5 py-2.5 rounded-lg btn-outline-soft text-sm font-medium flex items-center gap-2 hover:bg-white transition-all">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
               </svg>
-              Book a call
+              {t('nav.bookCall')}
             </button>
             <button
               onClick={onClose}
               className="px-6 py-2.5 rounded-lg btn-glossy text-white text-sm font-semibold"
             >
-              Preview Your Book ⟶
+              {t('nav.previewBook')}
             </button>
           </div>
         </nav>
@@ -125,7 +129,7 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
             {/* First Typing Bubble */}
             <div className="flex justify-start mb-6">
               <TypingBubble
-                text="Let's turn someone you love into the star of the story in under 60 seconds. ✨ Can you upload a clear photo with one face?"
+                text={t('bookCreation.firstMessage')}
                 onFinished={handleFirstBubbleFinish}
               />
             </div>
@@ -141,7 +145,7 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
             {step === 2 && (
               <div className="animate-in fade-in duration-300">
                 <TypingBubble
-                  text="Thanks! What's their name?"
+                  text={t('bookCreation.thanks')}
                   onFinished={handleSecondBubbleFinish}
                 />
               </div>
@@ -157,7 +161,7 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
               >
                 <input
                   type="text"
-                  placeholder="Enter character name..."
+                  placeholder={t('bookCreation.enterName')}
                   value={characterName}
                   onChange={(e) => setCharacterName(e.target.value)}
                   onKeyPress={(e) => {
@@ -174,7 +178,7 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
                     onClick={handleNameSubmit}
                     className="mt-3 w-full px-6 py-2.5 rounded-lg btn-glossy text-white text-sm font-semibold"
                   >
-                    Continue
+                    {t('bookCreation.continue')}
                   </motion.button>
                 )}
               </motion.div>
@@ -184,7 +188,7 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
             {step === 3 && (
               <div className="animate-in fade-in duration-300">
                 <TypingBubble
-                  text="How should we describe them in the story?"
+                  text={t('bookCreation.describe')}
                   onFinished={handleThirdBubbleFinish}
                   darkMode={true}
                 />
@@ -203,19 +207,19 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
                   onClick={() => handleDescriptionSelect('skip')}
                   className="px-6 py-3 bg-transparent border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
                 >
-                  Skip
+                  {t('bookCreation.skip')}
                 </button>
                 <button
                   onClick={() => handleDescriptionSelect('girl')}
                   className="px-6 py-3 bg-white text-gray-800 rounded-lg hover:bg-gray-100 transition-colors font-medium border border-gray-200"
                 >
-                  Girl
+                  {t('bookCreation.girl')}
                 </button>
                 <button
                   onClick={() => handleDescriptionSelect('boy')}
                   className="px-6 py-3 bg-white text-gray-800 rounded-lg hover:bg-gray-100 transition-colors font-medium border border-gray-200"
                 >
-                  Boy
+                  {t('bookCreation.boy')}
                 </button>
               </motion.div>
             )}
@@ -224,7 +228,7 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
             {step === 4 && (
               <div className="animate-in fade-in duration-300">
                 <TypingBubble
-                  text={`Got it. How many years old is ${characterName || 'they'}?`}
+                  text={t('bookCreation.howOld').replace('{name}', characterName || t('bookCreation.they'))}
                   onFinished={() => setFourthBubbleFinished(true)}
                 />
               </div>
@@ -240,7 +244,7 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
               >
                 <input
                   type="text"
-                  placeholder="Enter age..."
+                  placeholder={t('bookCreation.enterAge')}
                   value={characterAge}
                   onChange={(e) => setCharacterAge(e.target.value)}
                   onKeyPress={(e) => {
@@ -257,7 +261,7 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
                     onClick={handleAgeSubmit}
                     className="mt-3 w-full px-6 py-2.5 rounded-lg btn-glossy text-white text-sm font-semibold"
                   >
-                    Continue
+                    {t('bookCreation.continue')}
                   </motion.button>
                 )}
               </motion.div>
@@ -267,7 +271,7 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
             {step === 5 && (
               <div className="animate-in fade-in duration-300">
                 <TypingBubble
-                  text={`Here's ${characterName || 'them'}! What do you think?`}
+                  text={t('bookCreation.hereTheyAre').replace('{name}', characterName || t('bookCreation.them'))}
                   onFinished={() => setFifthBubbleFinished(true)}
                 />
               </div>
@@ -277,20 +281,15 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
             {feedbackAccepted && (
               <div className="mt-6 animate-in fade-in duration-300">
                 <TypingBubble
-                  text="Almost there! Let's save your progress. What is your email address?"
+                  text={t('bookCreation.almostThere')}
                   onFinished={() => {}}
                   darkMode={true}
                 />
                 <div className="mt-4">
-                  <div className="text-center text-sm text-gray-300 mb-2">
-                    By proceeding, you agree to our{' '}
-                    <a href="#" className="underline hover:opacity-90">Terms of Service</a>{' '}
-                    and{' '}
-                    <a href="#" className="underline hover:opacity-90">Privacy Policy</a>.
-                  </div>
+                  <div className="text-center text-sm text-gray-300 mb-2" dangerouslySetInnerHTML={{ __html: t('bookCreation.terms') }} />
                   <input
                     type="email"
-                    placeholder="your@email.com"
+                    placeholder={t('bookCreation.emailPlaceholder')}
                     value={userEmail}
                     onChange={(e) => setUserEmail(e.target.value)}
                     onKeyPress={(e) => {
@@ -304,7 +303,7 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
                     onClick={submitEmail}
                     className="mt-3 w-full px-6 py-2.5 rounded-lg btn-glossy text-white text-sm font-semibold"
                   >
-                    Continue
+                    {t('bookCreation.continue')}
                   </motion.button>
                 </div>
               </div>
@@ -322,13 +321,13 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
                   onClick={() => handleImageFeedback(false)}
                   className="px-6 py-2.5 rounded-lg btn-glossy text-white text-sm font-semibold"
                 >
-                  I don't like it
+                  {t('bookCreation.dontLike')}
                 </button>
                 <button
                   onClick={() => handleImageFeedback(true)}
                   className="px-6 py-2.5 rounded-lg btn-glossy text-white text-sm font-semibold"
                 >
-                  Looks great!
+                  {t('bookCreation.looksGreat')}
                 </button>
               </motion.div>
             )}
@@ -398,7 +397,7 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
                       className="absolute bottom-12 left-0 right-0 px-4"
                     >
                       <div className="bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg">
-                        <p className="text-gray-800 font-semibold text-center">{characterAge} years old</p>
+                        <p className="text-gray-800 font-semibold text-center">{characterAge} {t('bookCreation.yearsOld')}</p>
                       </div>
                     </motion.div>
                   )}

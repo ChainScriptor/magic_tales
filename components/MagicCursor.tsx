@@ -192,3 +192,8 @@ const MagicCursor: React.FC = () => {
 export default MagicCursor;
 
 
+
+
+
+
+

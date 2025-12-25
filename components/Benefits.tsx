@@ -1,55 +1,55 @@
 
 import React from 'react';
-
-const benefits = [
-  {
-    title: "Design board",
-    desc: "Easily manage your request queue through a dedicated workspace.",
-    icon: "🗂️",
-    color: "bg-orange-50"
-  },
-  {
-    title: "Flat monthly rate",
-    desc: "Fixed pricing means no surprises. Pay once per month, that's it.",
-    icon: "💳",
-    color: "bg-blue-50"
-  },
-  {
-    title: "Rapid delivery",
-    desc: "Average turnaround of 48 hours. We keep your brand moving fast.",
-    icon: "⚡",
-    color: "bg-rose-50"
-  },
-  {
-    title: "Senior talent",
-    desc: "Get top-tier creative work without the overhead of hiring full-time.",
-    icon: "⭐",
-    color: "bg-purple-50"
-  },
-  {
-    title: "Scale at will",
-    desc: "Upgrade, downgrade, or pause your plan as your workload changes.",
-    icon: "📈",
-    color: "bg-emerald-50"
-  },
-  {
-    title: "Ownership",
-    desc: "Every design is unique to you. You own the IP 100%.",
-    icon: "🔒",
-    color: "bg-cyan-50"
-  }
-];
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Benefits: React.FC = () => {
+  const { t } = useLanguage();
+  
+  const benefits = [
+    {
+      title: t('benefits.designBoard.title'),
+      desc: t('benefits.designBoard.desc'),
+      icon: "🗂️",
+      color: "bg-orange-50"
+    },
+    {
+      title: t('benefits.flatRate.title'),
+      desc: t('benefits.flatRate.desc'),
+      icon: "💳",
+      color: "bg-blue-50"
+    },
+    {
+      title: t('benefits.rapidDelivery.title'),
+      desc: t('benefits.rapidDelivery.desc'),
+      icon: "⚡",
+      color: "bg-rose-50"
+    },
+    {
+      title: t('benefits.seniorTalent.title'),
+      desc: t('benefits.seniorTalent.desc'),
+      icon: "⭐",
+      color: "bg-purple-50"
+    },
+    {
+      title: t('benefits.scale.title'),
+      desc: t('benefits.scale.desc'),
+      icon: "📈",
+      color: "bg-emerald-50"
+    },
+    {
+      title: t('benefits.ownership.title'),
+      desc: t('benefits.ownership.desc'),
+      icon: "🔒",
+      color: "bg-cyan-50"
+    }
+  ];
   return (
     <section className="container mx-auto max-w-7xl px-6 py-32 border-t border-gray-100">
       <div className="text-center mb-24 max-w-3xl mx-auto">
-        <span className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-6 block">Membership benefits</span>
-        <h2 className="text-4xl md:text-7xl font-medium leading-tight mb-8">
-          It's <span className="text-italics">"game-changer"</span> level better
-        </h2>
+        <span className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-6 block">{t('benefits.label')}</span>
+        <h2 className="text-4xl md:text-7xl font-medium leading-tight mb-8" dangerouslySetInnerHTML={{ __html: t('benefits.title') }} />
         <p className="text-xl text-gray-500">
-          MagicTales replaces slow freelancers and bulky agencies with a streamlined subscription that scales with your growth.
+          {t('benefits.subtitle')}
         </p>
       </div>
 

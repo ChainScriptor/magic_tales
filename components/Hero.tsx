@@ -1,11 +1,14 @@
 
 import React from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
+import LanguageSelector from './LanguageSelector';
 
 interface HeroProps {
   onPreviewBook?: () => void;
 }
 
 const Hero: React.FC<HeroProps> = ({ onPreviewBook }) => {
+  const { t } = useLanguage();
   return (
     <div className="container mx-auto max-w-7xl px-6 pt-10 pb-24">
       {/* Navigation Row */}
@@ -22,20 +25,21 @@ const Hero: React.FC<HeroProps> = ({ onPreviewBook }) => {
 
         {/* Action Buttons */}
         <div className="hidden md:flex items-center space-x-3">
+          <LanguageSelector />
           <button className="px-6 py-2.5 rounded-lg btn-outline-soft text-sm font-medium hover:bg-white transition-all">
-            Login
+            {t('nav.login')}
           </button>
           <button className="px-5 py-2.5 rounded-lg btn-outline-soft text-sm font-medium flex items-center gap-2 hover:bg-white transition-all">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
             </svg>
-            Book a call
+            {t('nav.bookCall')}
           </button>
           <button
             onClick={onPreviewBook}
             className="px-6 py-2.5 rounded-lg btn-glossy text-white text-sm font-semibold"
           >
-            Preview Your Book ⟶
+            {t('nav.previewBook')}
           </button>
         </div>
       </nav>
@@ -44,16 +48,16 @@ const Hero: React.FC<HeroProps> = ({ onPreviewBook }) => {
         {/* Headline Section */}
         <div className="pt-4">
           <h1 className="text-[72px] md:text-[110px] font-bold leading-[0.95] tracking-[-0.03em] mb-10 text-[#0e0e0e]">
-            Design<br />
+            {t('hero.title.line1')}<br />
             <span className="inline-flex items-center gap-4">
-              Fairy tales
+              {t('hero.title.line2')}
 
             </span>
             <br />
-            for <span className="text-everyone">everyone</span>
+            {t('hero.title.line3')} <span className="text-everyone">{t('hero.title.everyone')}</span>
           </h1>
           <p className="text-2xl text-[#9a9a9a] font-medium opacity-80 mb-6">
-            your kids will love it.
+            {t('hero.subtitle')}
           </p>
 
           <div className="relative w-40 max-w-md">
@@ -81,18 +85,16 @@ const Hero: React.FC<HeroProps> = ({ onPreviewBook }) => {
             <div className="flex justify-start">
               <div className="bg-black rounded-full px-5 py-2 flex items-center gap-3 text-sm font-bold tracking-tight">
                 <span className="w-2.5 h-2.5 rounded-full bg-yellow-400"></span>
-                Start today
+                {t('hero.badge')}
               </div>
             </div>
 
             {/* Middle Content */}
             <div className="relative z-10 -mt-10">
-              <h2 className="text-[64px] font-bold leading-[1] mb-4">
-                Join<br />MagicTales
-              </h2>
+              <h2 className="text-[64px] font-bold leading-[1] mb-4" dangerouslySetInnerHTML={{ __html: t('hero.card.title') }} />
 
               <p className="text-lg text-white/70 font-medium mb-10">
-                One subscription to rule them all.
+                {t('hero.card.subtitle')}
               </p>
 
               <div className="flex gap-3">
@@ -144,8 +146,8 @@ const Hero: React.FC<HeroProps> = ({ onPreviewBook }) => {
                   <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=magic&backgroundColor=ffdf00" alt="Avatar" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold">Book a 15-min intro call</p>
-                  <p className="text-sm text-white/50">Schedule now</p>
+                  <p className="text-sm font-bold">{t('hero.card.call')}</p>
+                  <p className="text-sm text-white/50">{t('hero.card.schedule')}</p>
                 </div>
               </div>
               <button className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-black hover:scale-110 transition-transform">

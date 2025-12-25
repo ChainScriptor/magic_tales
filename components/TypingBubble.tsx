@@ -43,11 +43,6 @@ const TypingBubble: React.FC<TypingBubbleProps> = ({
                             }`}>|</span>
                     )}
                 </p>
-                {/* Speech bubble tail */}
-                <div className="absolute -left-2 bottom-0 w-3 h-3">
-                    <div className={`w-3 h-3 transform rotate-45 ${darkMode ? 'bg-white' : 'bg-white'
-                        }`}></div>
-                </div>
             </div>
         </div>
     );

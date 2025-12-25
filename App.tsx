@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { LanguageProvider } from './contexts/LanguageContext';
 import Hero from './components/Hero';
 import HowItWorks from './components/HowItWorks';
 import Benefits from './components/Benefits';
@@ -15,25 +16,25 @@ const App: React.FC = () => {
   const [showBookCreation, setShowBookCreation] = useState(false);
 
   return (
-    <div className="relative min-h-screen">
-      <MagicCursor />
-      {showBookCreation && <BookCreation onClose={() => setShowBookCreation(false)} />}
-      <div className="grid-lines" />
-      <header className="relative z-10">
-        <Hero onPreviewBook={() => setShowBookCreation(true)} />
-      </header>
-      <main className="relative z-10">
-        <HowItWorks />
-        <Logos />
-        <Work />
-        <FairyTales />
-        <Benefits />
-        <Pricing />
-      </main>
-      <footer className="relative z-10">
-        <Footer />
-      </footer>
-    </div>
+    <LanguageProvider>
+      <div className="relative min-h-screen">
+        <MagicCursor />
+        {showBookCreation && <BookCreation onClose={() => setShowBookCreation(false)} />}
+        <div className="grid-lines" />
+        <header className="relative z-10">
+          <Hero onPreviewBook={() => setShowBookCreation(true)} />
+        </header>
+        <main className="relative z-10">
+          <HowItWorks />
+          <Logos />
+          <Work />
+
+        </main>
+        <footer className="relative z-10">
+          <Footer />
+        </footer>
+      </div>
+    </LanguageProvider>
   );
 };
 
