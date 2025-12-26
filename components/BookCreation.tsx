@@ -15,7 +15,9 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
   const { t } = useLanguage();
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [uploadedImageBase64, setUploadedImageBase64] = useState<string | null>(null);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [firstBubbleFinished, setFirstBubbleFinished] = useState(false);
   const [secondBubbleFinished, setSecondBubbleFinished] = useState(false);
   const [thirdBubbleFinished, setThirdBubbleFinished] = useState(false);
@@ -30,6 +32,15 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
   const handleFileUpload = (file: File) => {
     const imageUrl = URL.createObjectURL(file);
     setUploadedImage(imageUrl);
+    
+    // Convert file to base64 for API
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setUploadedImageBase64(base64String);
+    };
+    reader.readAsDataURL(file);
+    
     setStep(2);
   };
 
@@ -56,15 +67,86 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
     setStep(4);
   };
 
-  const handleAgeSubmit = () => {
-    if (characterAge.trim()) {
+  const handleAgeSubmit = async () => {
+    if (characterAge.trim() && uploadedImageBase64) {
       setStep(5);
-      // Simulate image generation - in real app, this would call an API
-      setTimeout(() => {
-        // For demo, using a placeholder. In production, this would be the generated image URL
+      setIsGenerating(true);
+      
+      try {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${API_URL}/api/image/generate-wizard`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageBase64: uploadedImageBase64,
+            characterName: characterName,
+            characterAge: characterAge,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to generate image');
+        }
+
+        const data = await response.json();
+        if (data.success && data.image) {
+          setGeneratedImage(data.image);
+          setFifthBubbleFinished(true);
+        } else {
+          throw new Error('No image returned from API');
+        }
+      } catch (error) {
+        console.error('Error generating wizard image:', error);
+        // Fallback to placeholder on error
         setGeneratedImage('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=800&fit=crop');
         setFifthBubbleFinished(true);
-      }, 2000);
+        alert('Failed to generate wizard image. Please try again.');
+      } finally {
+        setIsGenerating(false);
+      }
+    }
+  };
+
+  const regenerateImage = async () => {
+    if (!uploadedImageBase64) {
+      console.error('No uploaded image to regenerate from');
+      return;
+    }
+
+    setIsGenerating(true);
+    setGeneratedImage(null); // Clear current image while generating
+    
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/api/image/generate-wizard`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageBase64: uploadedImageBase64, // Use the same original image
+          characterName: characterName,
+          characterAge: characterAge,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to regenerate image');
+      }
+
+      const data = await response.json();
+      if (data.success && data.image) {
+        setGeneratedImage(data.image);
+      } else {
+        throw new Error('No image returned from API');
+      }
+    } catch (error) {
+      console.error('Error regenerating wizard image:', error);
+      alert('Failed to regenerate image. Please try again.');
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -72,8 +154,8 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
     if (liked) {
       setFeedbackAccepted(true);
     } else {
-      // Regenerate or go back
-      console.log('User wants to regenerate...');
+      // Regenerate with the same original image
+      regenerateImage();
     }
   };
 
@@ -268,12 +350,30 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
             )}
 
             {/* Fifth Typing Bubble - Show after age is submitted */}
-            {step === 5 && (
+            {step === 5 && !isGenerating && (
               <div className="animate-in fade-in duration-300">
                 <TypingBubble
                   text={t('bookCreation.hereTheyAre').replace('{name}', characterName || t('bookCreation.them'))}
                   onFinished={() => setFifthBubbleFinished(true)}
                 />
+              </div>
+            )}
+
+            {/* Loading State - Generating wizard image */}
+            {step === 5 && isGenerating && (
+              <div className="animate-in fade-in duration-300">
+                <TypingBubble
+                  text="Creating magic... ✨ Transforming your photo into a wizard costume!"
+                  onFinished={() => {}}
+                />
+                <div className="mt-6 flex flex-col items-center justify-center p-8 bg-white rounded-lg border border-gray-200">
+                  <div className="relative w-16 h-16 mb-4">
+                    <div className="absolute inset-0 border-4 border-[#1a47ff] border-t-transparent rounded-full animate-spin"></div>
+                    <div className="absolute inset-2 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1s' }}></div>
+                  </div>
+                  <p className="text-gray-600 text-sm font-medium">Generating your magical wizard image...</p>
+                  <p className="text-gray-400 text-xs mt-2">This may take a few moments</p>
+                </div>
               </div>
             )}
 
@@ -319,13 +419,19 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
               >
                 <button
                   onClick={() => handleImageFeedback(false)}
-                  className="px-6 py-2.5 rounded-lg btn-glossy text-white text-sm font-semibold"
+                  disabled={isGenerating}
+                  className={`px-6 py-2.5 rounded-lg btn-glossy text-white text-sm font-semibold ${
+                    isGenerating ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'
+                  }`}
                 >
-                  {t('bookCreation.dontLike')}
+                  {isGenerating ? 'Regenerating...' : t('bookCreation.dontLike')}
                 </button>
                 <button
                   onClick={() => handleImageFeedback(true)}
-                  className="px-6 py-2.5 rounded-lg btn-glossy text-white text-sm font-semibold"
+                  disabled={isGenerating}
+                  className={`px-6 py-2.5 rounded-lg btn-glossy text-white text-sm font-semibold ${
+                    isGenerating ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'
+                  }`}
                 >
                   {t('bookCreation.looksGreat')}
                 </button>
@@ -348,7 +454,7 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
           </div>
 
           {/* Right Side - Uploaded Image Preview or Generated Image */}
-          {step < 5 && uploadedImage && (
+          {uploadedImage && (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -356,7 +462,8 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
               className="flex-1 w-full lg:max-w-sm flex justify-center lg:justify-start"
             >
               <div className="bg-white rounded-2xl p-4 shadow-xl overflow-hidden w-full max-w-xs relative">
-                <div className="aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 relative">
+                {/* Original Uploaded Image */}
+                <div className="aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 relative mb-4">
                   <img
                     src={uploadedImage}
                     alt="Uploaded character"
@@ -415,61 +522,35 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
                     </motion.div>
                   )}
                 </div>
-              </div>
-            </motion.div>
-          )}
 
-          {/* Generated Image Preview - Step 5 */}
-          {step === 5 && generatedImage && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
-              className="flex-1 w-full lg:max-w-md flex justify-center lg:justify-start"
-            >
-              <div className="bg-white rounded-2xl p-4 shadow-xl overflow-hidden w-full max-w-md relative">
-                {/* Page Number Badge - Top Right */}
-                <div className="absolute top-6 right-6 z-10">
-                  <div className="bg-[#1a1f3a] rounded-lg px-3 py-1.5 shadow-lg">
-                    <p className="text-white font-semibold text-sm">12</p>
-                  </div>
-                </div>
-                
-                <div className="rounded-xl overflow-hidden bg-gray-100 relative">
-                  {(() => {
-                    const fairytaleImages: string[] = [
-                      '/fairytales/download (6).jpeg',
-                      '/fairytales/download (7).jpeg',
-                      '/fairytales/download (8).jpeg',
-                      '/fairytales/download (9).jpeg',
-                      '/fairytales/download (10).jpeg',
-                      '/fairytales/download (11).jpeg',
-                      '/fairytales/download (12).jpeg',
-                      '/fairytales/download (13).jpeg',
-                      '/fairytales/download (14).jpeg',
-                      '/fairytales/download (15).jpeg',
-                      '/fairytales/download (16).jpeg',
-                      '/fairytales/download (17).jpeg',
-                      '/fairytales/download (18).jpeg',
-                    ];
-                    const slideshowImages = [generatedImage, ...fairytaleImages].filter(Boolean) as string[];
-                    return (
-                      <Slideshow
-                        images={slideshowImages}
-                        intervalMs={2000}
-                        imgClassName="w-full h-auto object-cover"
-                        alt="Generated character story"
+                {/* Generated Wizard Image - Below Original */}
+                {step === 5 && generatedImage && !isGenerating && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                    className="w-full"
+                  >
+                    <div className="mb-2">
+                      <p className="text-sm font-semibold text-gray-700 text-center mb-2">
+                        ✨ Your Magical Transformation ✨
+                      </p>
+                    </div>
+                    <div className="aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 relative border-2 border-purple-300 shadow-lg">
+                      <img
+                        src={generatedImage}
+                        alt="Generated wizard character"
+                        className="w-full h-full object-cover"
                       />
-                    );
-                  })()}
-                  {feedbackAccepted && (
-                    <img
-                      src={generatedImage || ''}
-                      alt="Selected thumbnail"
-                      className="absolute bottom-4 left-4 w-20 h-20 rounded-xl border-2 border-white shadow-lg object-cover"
-                    />
-                  )}
-                </div>
+                      {/* Magic sparkle effect badge */}
+                      <div className="absolute top-4 left-4">
+                        <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg px-3 py-1.5 shadow-lg">
+                          <p className="text-white font-bold text-xs">✨ MAGIC ✨</p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
               </div>
             </motion.div>
           )}
