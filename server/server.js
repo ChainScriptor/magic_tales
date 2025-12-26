@@ -1,15 +1,10 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const dotenv = require('dotenv');
 
 // Load environment variables
-dotenv.config({ path: path.join(__dirname, '.env') });
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -30,19 +25,16 @@ mongoose.connect(MONGODB_URI)
     console.error('❌ MongoDB connection error:', error);
   });
 
-// Basic route
-app.get('/', (req, res) => {
-  res.json({ message: 'MagicTales Studio API Server is running!' });
-});
+// Routes
+app.use('/api/submissions', require('./routes/submissions'));
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', message: 'Server is running' });
 });
 
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
 });
-
 

@@ -1,6 +1,311 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-export type Language = 'el' | 'en';
+type Language = 'en' | 'el';
+
+interface Translations {
+  [key: string]: string | Translations;
+}
+
+const translations: Record<Language, Translations> = {
+  en: {
+    nav: {
+      login: 'Login',
+      bookCall: 'Book a Call',
+      previewBook: 'Preview Book',
+    },
+    hero: {
+      title: {
+        line1: 'Create Magical',
+        line2: 'Fairy Tales',
+        line3: 'for',
+        everyone: 'Everyone',
+      },
+      subtitle: 'Transform your child\'s photo into an enchanting personalized storybook',
+      badge: 'Premium Member',
+      card: {
+        title: 'Join the<br/>Magic',
+        subtitle: 'Get unlimited access to personalized fairy tales and magical stories',
+        call: 'Book a Call',
+        schedule: 'Schedule Now',
+      },
+    },
+    imageUpload: {
+      uploadFile: 'Upload a photo',
+      dragDrop: 'Drag and drop your image here, or click to browse',
+      dropIt: 'Drop it here',
+    },
+    bookCreation: {
+      firstMessage: 'Hi! I\'m here to help you create a magical fairy tale. First, let\'s start by uploading a photo of your child.',
+      thanks: 'Perfect! I can see the photo. Now, what\'s your child\'s name?',
+      enterName: 'Enter your child\'s name',
+      continue: 'Continue',
+      describe: 'Great! Now, can you tell me a bit about your child?',
+      skip: 'Skip',
+      girl: 'Girl',
+      boy: 'Boy',
+      howOld: 'How old is {name}?',
+      they: 'they',
+      enterAge: 'Enter age',
+      hereTheyAre: 'Here\'s {name}! What do you think?',
+      them: 'them',
+      almostThere: 'Almost there! Enter your email to receive your personalized fairy tale book.',
+      terms: 'By continuing, you agree to our <a href="#" class="underline">Terms of Service</a> and <a href="#" class="underline">Privacy Policy</a>',
+      emailPlaceholder: 'Enter your email',
+      dontLike: "I don't like it",
+      looksGreat: 'Looks great!',
+      yearsOld: 'years old',
+    },
+    work: {
+      label: 'Our Work',
+      title: 'See the<br/>Magic',
+      subtitle: 'Explore our collection of personalized fairy tales and magical stories',
+      seeWork: 'See Our Work',
+      magic: {
+        label: 'The Magic',
+        title: 'Create Your<br/>Story',
+        subtitle: 'Upload a photo and watch as we transform it into a magical fairy tale',
+        generating: 'Generating your story...',
+        generate: 'Generate Story',
+      },
+    },
+    pricing: {
+      label: 'Pricing',
+      title: 'Simple,<br/>Transparent',
+      standard: {
+        mostPopular: 'Most Popular',
+        title: 'Standard',
+        desc: 'Perfect for individuals and small families',
+        unlimited: 'Unlimited fairy tale requests',
+        delivery: 'Fast 24-48 hour delivery',
+        revisions: 'Unlimited revisions',
+        slack: 'Direct Slack communication',
+        pause: 'Pause or cancel anytime',
+        getStarted: 'Get Started',
+      },
+      pro: {
+        title: 'Pro',
+        desc: 'For businesses and larger families',
+        requests: 'Priority requests',
+        delivery: 'Same-day delivery available',
+        video: 'Video story options',
+        calls: 'Monthly strategy calls',
+        illustrations: 'Custom illustrations',
+        contact: 'Contact Us',
+      },
+      projectBasis: 'Need something specific? <a href="#" class="underline">Contact us</a> for project-based pricing',
+    },
+    howItWorks: {
+      title: 'How It<br/>Works',
+      subscribe: {
+        title: '1. Subscribe',
+        desc: 'Choose a plan that works for you',
+      },
+      request: {
+        title: '2. Request',
+        desc: 'Submit your child\'s photo and preferences',
+      },
+      receive: {
+        title: '3. Receive',
+        desc: 'Get your personalized fairy tale delivered',
+      },
+    },
+    benefits: {
+      label: 'Benefits',
+      title: 'Why Choose<br/>MagicTales',
+      subtitle: 'Experience the magic of personalized storytelling',
+      designBoard: {
+        title: 'Design Board',
+        desc: 'Track all your requests in one place',
+      },
+      flatRate: {
+        title: 'Flat Rate',
+        desc: 'No hidden fees, just one simple price',
+      },
+      rapidDelivery: {
+        title: 'Rapid Delivery',
+        desc: 'Get your stories fast, usually within 24-48 hours',
+      },
+      seniorTalent: {
+        title: 'Senior Talent',
+        desc: 'Work with experienced storytellers and illustrators',
+      },
+      scale: {
+        title: 'Scale',
+        desc: 'From one story to unlimited, scale as you need',
+      },
+      ownership: {
+        title: 'Full Ownership',
+        desc: 'You own all the rights to your stories',
+      },
+    },
+    footer: {
+      description: 'Create magical, personalized fairy tales for your children',
+      nav: {
+        title: 'Navigation',
+        latestWork: 'Latest Work',
+        pricing: 'Pricing',
+        benefits: 'Benefits',
+        login: 'Login',
+      },
+      contact: {
+        title: 'Contact',
+        bookCall: 'Book a Call',
+      },
+      copyright: '© 2024 MagicTales. All rights reserved.',
+      privacy: 'Privacy Policy',
+      terms: 'Terms of Service',
+    },
+  },
+  el: {
+    nav: {
+      login: 'Σύνδεση',
+      bookCall: 'Κλείστε Ραντεβού',
+      previewBook: 'Προεπισκόπηση Βιβλίου',
+    },
+    hero: {
+      title: {
+        line1: 'Δημιουργήστε Μαγικά',
+        line2: 'Παραμύθια',
+        line3: 'για',
+        everyone: 'Όλους',
+      },
+      subtitle: 'Μετατρέψτε τη φωτογραφία του παιδιού σας σε ένα μαγικό εξατομικευμένο βιβλίο',
+      badge: 'Premium Μέλος',
+      card: {
+        title: 'Γίνετε Μέλος<br/>της Μαγείας',
+        subtitle: 'Αποκτήστε απεριόριστη πρόσβαση σε εξατομικευμένα παραμύθια και μαγικές ιστορίες',
+        call: 'Κλείστε Ραντεβού',
+        schedule: 'Κλείστε Τώρα',
+      },
+    },
+    imageUpload: {
+      uploadFile: 'Ανεβάστε μια φωτογραφία',
+      dragDrop: 'Σύρετε και αφήστε την εικόνα σας εδώ, ή κάντε κλικ για να περιηγηθείτε',
+      dropIt: 'Αφήστε την εδώ',
+    },
+    bookCreation: {
+      firstMessage: 'Γεια σας! Είμαι εδώ για να σας βοηθήσω να δημιουργήσετε ένα μαγικό παραμύθι. Αρχικά, ας ξεκινήσουμε ανεβάζοντας μια φωτογραφία του παιδιού σας.',
+      thanks: 'Τέλεια! Βλέπω τη φωτογραφία. Τώρα, πώς λέγεται το παιδί σας;',
+      enterName: 'Εισάγετε το όνομά του παιδιού σας',
+      continue: 'Συνέχεια',
+      describe: 'Υπέροχα! Τώρα, μπορείτε να μου πείτε λίγα για το παιδί σας;',
+      skip: 'Παράλειψη',
+      girl: 'Κορίτσι',
+      boy: 'Αγόρι',
+      howOld: 'Πόσων χρονών είναι το {name};',
+      they: 'παιδί',
+      enterAge: 'Εισάγετε την ηλικία',
+      hereTheyAre: 'Ορίστε το {name}! Τι λέτε;',
+      them: 'παιδί',
+      almostThere: 'Σχεδόν έτοιμο! Εισάγετε το email σας για να λάβετε το εξατομικευμένο παραμύθι σας.',
+      terms: 'Συνεχίζοντας, συμφωνείτε με τους <a href="#" class="underline">Όρους Χρήσης</a> και την <a href="#" class="underline">Πολιτική Απορρήτου</a>',
+      emailPlaceholder: 'Εισάγετε το email σας',
+      dontLike: 'Δεν μου αρέσει',
+      looksGreat: 'Φαίνεται υπέροχο!',
+      yearsOld: 'χρονών',
+    },
+    work: {
+      label: 'Η Δουλειά Μας',
+      title: 'Δείτε τη<br/>Μαγεία',
+      subtitle: 'Εξερευνήστε τη συλλογή μας από εξατομικευμένα παραμύθια και μαγικές ιστορίες',
+      seeWork: 'Δείτε τη Δουλειά Μας',
+      magic: {
+        label: 'Η Μαγεία',
+        title: 'Δημιουργήστε τη<br/>Ιστορία σας',
+        subtitle: 'Ανεβάστε μια φωτογραφία και παρακολουθήστε τη μεταμόρφωσή της σε μαγικό παραμύθι',
+        generating: 'Δημιουργία της ιστορίας σας...',
+        generate: 'Δημιουργία Ιστορίας',
+      },
+    },
+    pricing: {
+      label: 'Τιμές',
+      title: 'Απλό,<br/>Διαφανές',
+      standard: {
+        mostPopular: 'Πιο Δημοφιλές',
+        title: 'Standard',
+        desc: 'Ιδανικό για άτομα και μικρές οικογένειες',
+        unlimited: 'Απεριόριστες αιτήσεις παραμυθιών',
+        delivery: 'Γρήγορη παράδοση 24-48 ωρών',
+        revisions: 'Απεριόριστες αναθεωρήσεις',
+        slack: 'Άμεση επικοινωνία μέσω Slack',
+        pause: 'Παύση ή ακύρωση οποιαδήποτε στιγμή',
+        getStarted: 'Ξεκινήστε',
+      },
+      pro: {
+        title: 'Pro',
+        desc: 'Για επιχειρήσεις και μεγαλύτερες οικογένειες',
+        requests: 'Προτεραιότητα στις αιτήσεις',
+        delivery: 'Παράδοση την ίδια ημέρα',
+        video: 'Επιλογές βίντεο ιστοριών',
+        calls: 'Μηνιαίες στρατηγικές συνομιλίες',
+        illustrations: 'Εξατομικευμένες εικονογραφήσεις',
+        contact: 'Επικοινωνήστε Μαζί Μας',
+      },
+      projectBasis: 'Χρειάζεστε κάτι συγκεκριμένο; <a href="#" class="underline">Επικοινωνήστε μαζί μας</a> για τιμολόγηση ανά έργο',
+    },
+    howItWorks: {
+      title: 'Πώς<br/>Λειτουργεί',
+      subscribe: {
+        title: '1. Εγγραφείτε',
+        desc: 'Επιλέξτε ένα πρόγραμμα που σας ταιριάζει',
+      },
+      request: {
+        title: '2. Ζητήστε',
+        desc: 'Υποβάλετε τη φωτογραφία και τις προτιμήσεις του παιδιού σας',
+      },
+      receive: {
+        title: '3. Λάβετε',
+        desc: 'Λάβετε το εξατομικευμένο παραμύθι σας',
+      },
+    },
+    benefits: {
+      label: 'Πλεονεκτήματα',
+      title: 'Γιατί να Επιλέξετε<br/>MagicTales',
+      subtitle: 'Βιώστε τη μαγεία της εξατομικευμένης αφήγησης',
+      designBoard: {
+        title: 'Πίνακας Σχεδίασης',
+        desc: 'Παρακολουθήστε όλες τις αιτήσεις σας σε ένα μέρος',
+      },
+      flatRate: {
+        title: 'Σταθερή Τιμή',
+        desc: 'Χωρίς κρυφά τέλη, μόνο μια απλή τιμή',
+      },
+      rapidDelivery: {
+        title: 'Γρήγορη Παράδοση',
+        desc: 'Λάβετε τις ιστορίες σας γρήγορα, συνήθως εντός 24-48 ωρών',
+      },
+      seniorTalent: {
+        title: 'Εμπειρία',
+        desc: 'Συνεργαστείτε με έμπειρους αφηγητές και εικονογράφους',
+      },
+      scale: {
+        title: 'Κλίμακα',
+        desc: 'Από μια ιστορία σε απεριόριστες, κλιμακώστε όπως χρειάζεστε',
+      },
+      ownership: {
+        title: 'Πλήρης Ιδιοκτησία',
+        desc: 'Έχετε όλα τα δικαιώματα στις ιστορίες σας',
+      },
+    },
+    footer: {
+      description: 'Δημιουργήστε μαγικά, εξατομικευμένα παραμύθια για τα παιδιά σας',
+      nav: {
+        title: 'Πλοήγηση',
+        latestWork: 'Τελευταία Έργα',
+        pricing: 'Τιμές',
+        benefits: 'Πλεονεκτήματα',
+        login: 'Σύνδεση',
+      },
+      contact: {
+        title: 'Επικοινωνία',
+        bookCall: 'Κλείστε Ραντεβού',
+      },
+      copyright: '© 2024 MagicTales. Όλα τα δικαιώματα διατηρούνται.',
+      privacy: 'Πολιτική Απορρήτου',
+      terms: 'Όροι Χρήσης',
+    },
+  },
+};
 
 interface LanguageContextType {
   language: Language;
@@ -10,249 +315,51 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-// Translations
-const translations: Record<Language, Record<string, string>> = {
-  el: {
-    // Navigation
-    'nav.login': 'Σύνδεση',
-    'nav.bookCall': 'Κλείσε ένα τηλέφωνο',
-    'nav.previewBook': 'Προεπισκόπηση Βιβλίου ⟶',
-    
-    // Hero
-    'hero.title.line1': 'Σχεδίασε',
-    'hero.title.line2': 'Παραμύθια',
-    'hero.title.line3': 'για',
-    'hero.title.everyone': 'όλους',
-    'hero.subtitle': 'τα παιδιά σας θα το λατρέψουν.',
-    'hero.badge': 'Ξεκίνα σήμερα',
-    'hero.card.title': 'Γίνε Μέλος<br />MagicTales',
-    'hero.card.subtitle': 'Μία συνδρομή για όλα.',
-    'hero.card.call': 'Κλείσε ένα 15λεπτο τηλέφωνο',
-    'hero.card.schedule': 'Κλείσε τώρα',
-    
-    // How It Works
-    'howItWorks.title': 'Ο τρόπος που η σχεδίαση <span class="italic">έπρεπε</span> να γίνει εξαρχής',
-    'howItWorks.subscribe.title': 'Εγγραφή',
-    'howItWorks.subscribe.desc': 'Εγγράψου σε ένα σχέδιο & ζήτησε όσες σχεδιάσεις θέλεις.',
-    'howItWorks.request.title': 'Αίτημα',
-    'howItWorks.request.desc': 'Ζήτησε ό,τι θέλεις, από mobile apps έως λογότυπα.',
-    'howItWorks.receive.title': 'Λήψη',
-    'howItWorks.receive.desc': 'Λάβε τις σχεδιάσεις σου μέσα σε δύο εργάσιμες ημέρες κατά μέσο όρο.',
-    
-    // Benefits
-    'benefits.label': 'Πλεονεκτήματα συνδρομής',
-    'benefits.title': 'Είναι <span class="text-italics">"game-changer"</span> καλύτερο',
-    'benefits.subtitle': 'Το MagicTales αντικαθιστά τους αργούς freelancers και τις ογκώδεις εταιρείες με μια απλοποιημένη συνδρομή που κλιμακώνεται με την ανάπτυξή σου.',
-    'benefits.designBoard.title': 'Πίνακας σχεδίασης',
-    'benefits.designBoard.desc': 'Διαχειρίσου εύκολα την ουρά αιτημάτων σου μέσα από έναν αφοσιωμένο χώρο εργασίας.',
-    'benefits.flatRate.title': 'Σταθερή μηνιαία τιμή',
-    'benefits.flatRate.desc': 'Σταθερή τιμολόγηση σημαίνει χωρίς εκπλήξεις. Πλήρωσε μία φορά το μήνα, αυτό είναι όλο.',
-    'benefits.rapidDelivery.title': 'Γρήγορη παράδοση',
-    'benefits.rapidDelivery.desc': 'Μέσος χρόνος παράδοσης 48 ώρες. Κρατάμε την επωνυμία σου να κινείται γρήγορα.',
-    'benefits.seniorTalent.title': 'Ανώτερο ταλέντο',
-    'benefits.seniorTalent.desc': 'Πάρε δημιουργική δουλειά κορυφαίας ποιότητας χωρίς το overhead της πλήρους απασχόλησης.',
-    'benefits.scale.title': 'Κλιμάκωση κατά βούληση',
-    'benefits.scale.desc': 'Αναβάθμισε, υποβάθμισε ή παύσε το σχέδιό σου καθώς αλλάζει το φόρτο εργασίας σου.',
-    'benefits.ownership.title': 'Ιδιοκτησία',
-    'benefits.ownership.desc': 'Κάθε σχεδίαση είναι μοναδική για εσένα. Κατέχεις το IP 100%.',
-    
-    // Work
-    'work.label': 'Οι δυνατότητές μας',
-    'work.title': 'Οπτικές λύσεις για <br /><span class="text-italics">κάθε πλατφόρμα</span>',
-    'work.subtitle': 'Από startups πρώιμου σταδίου έως καθιερωμένες επιχειρήσεις, παρέχουμε το πλήρες φάσμα υποστήριξης σχεδίασης υψηλής ποιότητας.',
-    'work.seeWork': 'Δες πρόσφατη δουλειά',
-    'work.magic.label': 'Μαγεία σε κίνηση',
-    'work.magic.title': 'Δημιούργησε τη δική σου <span class="text-italics">οπτική ιστορία</span>',
-    'work.magic.subtitle': 'Γνώρισε τη δύναμη της αισθητικής μας που οδηγείται από ιστορίες. Ένα κλικ για να δημιουργήσεις μια μοναδική οπτική ευθυγραμμισμένη με την επωνυμία MagicTales.',
-    'work.magic.generate': 'Δημιούργησε Μαγεία',
-    'work.magic.generating': 'Δημιουργείται...',
-    
-    // Pricing
-    'pricing.label': 'Τιμολόγηση',
-    'pricing.title': 'Απλά <span class="text-italics">μονοεπίπεδα</span> σχέδια',
-    'pricing.standard.title': 'Standard',
-    'pricing.standard.desc': 'Ιδανικό για αναπτυσσόμενες επωνυμίες.',
-    'pricing.standard.mostPopular': 'Πιο Δημοφιλές',
-    'pricing.standard.unlimited': 'Απεριόριστα αιτήματα',
-    'pricing.standard.delivery': '48ωρη μέση παράδοση',
-    'pricing.standard.revisions': 'Απεριόριστες αναθεωρήσεις',
-    'pricing.standard.slack': 'Επικοινωνία Slack',
-    'pricing.standard.pause': 'Παύση ή ακύρωση οποιαδήποτε στιγμή',
-    'pricing.standard.getStarted': 'Ξεκίνα',
-    'pricing.pro.title': 'Creative Pro',
-    'pricing.pro.desc': 'Για storytellers μεγάλου όγκου.',
-    'pricing.pro.requests': '2 αιτήματα ταυτόχρονα',
-    'pricing.pro.delivery': 'Γρηγορότερη 24ωρη παράδοση',
-    'pricing.pro.video': 'Video & Motion συμπεριλαμβάνονται',
-    'pricing.pro.calls': 'Εβδομαδιαίες συντονιστικές κλήσεις',
-    'pricing.pro.illustrations': 'Premium Εικονογραφήσεις',
-    'pricing.pro.contact': 'Επικοινώνησε μαζί μας',
-    'pricing.projectBasis': 'Προτιμάς βάσει έργου; <a href="#" class="text-black font-bold underline">Ας συζητήσουμε.</a>',
-    
-    // Footer
-    'footer.description': 'Ανύψωση επωνυμιών μέσω σχεδίασης που οδηγείται από ιστορίες και ταχύτητας βασισμένης σε συνδρομή.',
-    'footer.nav.title': 'Πλοήγηση',
-    'footer.nav.latestWork': 'Πρόσφατη Δουλειά',
-    'footer.nav.pricing': 'Τιμολόγηση',
-    'footer.nav.benefits': 'Πλεονεκτήματα',
-    'footer.nav.login': 'Σύνδεση',
-    'footer.contact.title': 'Επικοινωνία',
-    'footer.contact.bookCall': 'Κλείσε ένα τηλέφωνο',
-    'footer.copyright': '© 2024 MagicTales Studio. Όλα τα δικαιώματα διατηρούνται.',
-    'footer.privacy': 'Πολιτική Απορρήτου',
-    'footer.terms': 'Όροι Χρήσης',
-    
-    // Book Creation
-    'bookCreation.firstMessage': 'Ας μετατρέψουμε κάποιον που αγαπάς στον πρωταγωνιστή της ιστορίας σε λιγότερο από 60 δευτερόλεπτα. ✨ Μπορείς να ανεβάσεις μια καθαρή φωτογραφία με ένα πρόσωπο;',
-    'bookCreation.thanks': 'Ευχαριστούμε! Πώς λέγονται;',
-    'bookCreation.enterName': 'Εισάγετε όνομα χαρακτήρα...',
-    'bookCreation.continue': 'Συνέχεια',
-    'bookCreation.describe': 'Πώς πρέπει να τους περιγράψουμε στην ιστορία;',
-    'bookCreation.skip': 'Παράλειψη',
-    'bookCreation.girl': 'Κορίτσι',
-    'bookCreation.boy': 'Αγόρι',
-    'bookCreation.howOld': 'Εντάξει. Πόσων χρονών είναι {name};',
-    'bookCreation.they': 'αυτοί',
-    'bookCreation.them': 'αυτούς',
-    'bookCreation.enterAge': 'Εισάγετε ηλικία...',
-    'bookCreation.hereTheyAre': 'Ορίστε ο/η {name}! Τι λέτε;',
-    'bookCreation.dontLike': 'Δεν μου αρέσει',
-    'bookCreation.looksGreat': 'Φαίνεται υπέροχο!',
-    'bookCreation.almostThere': 'Σχεδόν έτοιμο! Ας αποθηκεύσουμε την πρόοδό σου. Ποια είναι η διεύθυνση email σου;',
-    'bookCreation.terms': 'Συνεχίζοντας, συμφωνείς με τους <a href="#" class="underline hover:opacity-90">Όρους Χρήσης</a> και την <a href="#" class="underline hover:opacity-90">Πολιτική Απορρήτου</a>.',
-    'bookCreation.emailPlaceholder': 'your@email.com',
-    'bookCreation.yearsOld': 'χρονών',
-    
-    // Image Upload
-    'imageUpload.uploadFile': 'Ανέβασε αρχείο',
-    'imageUpload.dragDrop': 'Σύρετε ή αφήστε τα αρχεία σας εδώ ή κάντε κλικ για ανέβασμα (μόνο PNG, JPG)',
-    'imageUpload.dropIt': 'Αφήστε το',
-    
-    // Logos (no translation needed, these are brand names)
-  },
-  en: {
-    // Navigation
-    'nav.login': 'Login',
-    'nav.bookCall': 'Book a call',
-    'nav.previewBook': 'Preview Your Book ⟶',
-    
-    // Hero
-    'hero.title.line1': 'Design',
-    'hero.title.line2': 'Fairy tales',
-    'hero.title.line3': 'for',
-    'hero.title.everyone': 'everyone',
-    'hero.subtitle': 'your kids will love it.',
-    'hero.badge': 'Start today',
-    'hero.card.title': 'Join<br />MagicTales',
-    'hero.card.subtitle': 'One subscription to rule them all.',
-    'hero.card.call': 'Book a 15-min intro call',
-    'hero.card.schedule': 'Schedule now',
-    
-    // How It Works
-    'howItWorks.title': 'The way design <span class="italic">should\'ve</span> been done in the first place',
-    'howItWorks.subscribe.title': 'Subscribe',
-    'howItWorks.subscribe.desc': 'Subscribe to a plan & request as many designs as you\'d like.',
-    'howItWorks.request.title': 'Request',
-    'howItWorks.request.desc': 'Request whatever you\'d like, from mobile apps to logos.',
-    'howItWorks.receive.title': 'Receive',
-    'howItWorks.receive.desc': 'Receive your design within two business days on average.',
-    
-    // Benefits
-    'benefits.label': 'Membership benefits',
-    'benefits.title': 'It\'s <span class="text-italics">"game-changer"</span> level better',
-    'benefits.subtitle': 'MagicTales replaces slow freelancers and bulky agencies with a streamlined subscription that scales with your growth.',
-    'benefits.designBoard.title': 'Design board',
-    'benefits.designBoard.desc': 'Easily manage your request queue through a dedicated workspace.',
-    'benefits.flatRate.title': 'Flat monthly rate',
-    'benefits.flatRate.desc': 'Fixed pricing means no surprises. Pay once per month, that\'s it.',
-    'benefits.rapidDelivery.title': 'Rapid delivery',
-    'benefits.rapidDelivery.desc': 'Average turnaround of 48 hours. We keep your brand moving fast.',
-    'benefits.seniorTalent.title': 'Senior talent',
-    'benefits.seniorTalent.desc': 'Get top-tier creative work without the overhead of hiring full-time.',
-    'benefits.scale.title': 'Scale at will',
-    'benefits.scale.desc': 'Upgrade, downgrade, or pause your plan as your workload changes.',
-    'benefits.ownership.title': 'Ownership',
-    'benefits.ownership.desc': 'Every design is unique to you. You own the IP 100%.',
-    
-    // Work
-    'work.label': 'Our capabilities',
-    'work.title': 'Visual solutions for <br /><span class="text-italics">every platform</span>',
-    'work.subtitle': 'From early-stage startups to established enterprises, we provide the full spectrum of high-end design support.',
-    'work.seeWork': 'See recent work',
-    'work.magic.label': 'Magic in motion',
-    'work.magic.title': 'Create your own <span class="text-italics">visual story</span>',
-    'work.magic.subtitle': 'Experience the power of our story-driven aesthetic. One click to generate a unique visual aligned with the MagicTales brand.',
-    'work.magic.generate': 'Generate Magic',
-    'work.magic.generating': 'Generating...',
-    
-    // Pricing
-    'pricing.label': 'Pricing',
-    'pricing.title': 'Simple <span class="text-italics">one-tier</span> plans',
-    'pricing.standard.title': 'Standard',
-    'pricing.standard.desc': 'Perfect for growing brands.',
-    'pricing.standard.mostPopular': 'Most Popular',
-    'pricing.standard.unlimited': 'Unlimited requests',
-    'pricing.standard.delivery': '48h avg. delivery',
-    'pricing.standard.revisions': 'Unlimited revisions',
-    'pricing.standard.slack': 'Slack communication',
-    'pricing.standard.pause': 'Pause or cancel anytime',
-    'pricing.standard.getStarted': 'Get started',
-    'pricing.pro.title': 'Creative Pro',
-    'pricing.pro.desc': 'For high-volume storytellers.',
-    'pricing.pro.requests': '2 requests at a time',
-    'pricing.pro.delivery': 'Faster 24h delivery',
-    'pricing.pro.video': 'Video & Motion included',
-    'pricing.pro.calls': 'Weekly sync calls',
-    'pricing.pro.illustrations': 'Premium Illustrations',
-    'pricing.pro.contact': 'Contact us',
-    'pricing.projectBasis': 'Prefer a project basis? <a href="#" class="text-black font-bold underline">Let\'s chat.</a>',
-    
-    // Footer
-    'footer.description': 'Elevating brands through story-driven design and subscription-based speed.',
-    'footer.nav.title': 'Navigation',
-    'footer.nav.latestWork': 'Latest Work',
-    'footer.nav.pricing': 'Pricing',
-    'footer.nav.benefits': 'Benefits',
-    'footer.nav.login': 'Login',
-    'footer.contact.title': 'Contact',
-    'footer.contact.bookCall': 'Book a call',
-    'footer.copyright': '© 2024 MagicTales Studio. All rights reserved.',
-    'footer.privacy': 'Privacy Policy',
-    'footer.terms': 'Terms of Service',
-    
-    // Book Creation
-    'bookCreation.firstMessage': 'Let\'s turn someone you love into the star of the story in under 60 seconds. ✨ Can you upload a clear photo with one face?',
-    'bookCreation.thanks': 'Thanks! What\'s their name?',
-    'bookCreation.enterName': 'Enter character name...',
-    'bookCreation.continue': 'Continue',
-    'bookCreation.describe': 'How should we describe them in the story?',
-    'bookCreation.skip': 'Skip',
-    'bookCreation.girl': 'Girl',
-    'bookCreation.boy': 'Boy',
-    'bookCreation.howOld': 'Got it. How many years old is {name}?',
-    'bookCreation.they': 'they',
-    'bookCreation.them': 'them',
-    'bookCreation.enterAge': 'Enter age...',
-    'bookCreation.hereTheyAre': 'Here\'s {name}! What do you think?',
-    'bookCreation.dontLike': 'I don\'t like it',
-    'bookCreation.looksGreat': 'Looks great!',
-    'bookCreation.almostThere': 'Almost there! Let\'s save your progress. What is your email address?',
-    'bookCreation.terms': 'By proceeding, you agree to our <a href="#" class="underline hover:opacity-90">Terms of Service</a> and <a href="#" class="underline hover:opacity-90">Privacy Policy</a>.',
-    'bookCreation.emailPlaceholder': 'your@email.com',
-    'bookCreation.yearsOld': 'years old',
-    
-    // Image Upload
-    'imageUpload.uploadFile': 'Upload file',
-    'imageUpload.dragDrop': 'Drag or drop your files here or click to upload (PNG, JPG only)',
-    'imageUpload.dropIt': 'Drop it',
-  },
-};
-
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('el'); // Greek as default
+  const [language, setLanguageState] = useState<Language>(() => {
+    // Try to get language from localStorage, default to 'en'
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('language') as Language;
+      if (saved === 'el' || saved === 'en') {
+        return saved;
+      }
+    }
+    return 'en';
+  });
+
+  useEffect(() => {
+    // Save language preference to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('language', language);
+    }
+  }, [language]);
+
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+  };
 
   const t = (key: string): string => {
-    return translations[language][key] || key;
+    const keys = key.split('.');
+    let value: any = translations[language];
+    
+    for (const k of keys) {
+      if (value && typeof value === 'object' && k in value) {
+        value = value[k];
+      } else {
+        // Fallback to English if translation not found
+        value = translations.en;
+        for (const k2 of keys) {
+          if (value && typeof value === 'object' && k2 in value) {
+            value = value[k2];
+          } else {
+            return key; // Return key if translation not found
+          }
+        }
+        break;
+      }
+    }
+    
+    return typeof value === 'string' ? value : key;
   };
 
   return (
@@ -262,12 +369,11 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   );
 };
 
-export const useLanguage = () => {
+export const useLanguage = (): LanguageContextType => {
   const context = useContext(LanguageContext);
   if (context === undefined) {
     throw new Error('useLanguage must be used within a LanguageProvider');
   }
   return context;
 };
-
 
