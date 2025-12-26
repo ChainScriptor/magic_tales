@@ -5,7 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 const HowItWorks: React.FC = () => {
   const { t } = useLanguage();
   return (
-    <section className="container mx-auto max-w-7xl px-6 py-32">
+    <section className="container mx-auto max-w-7xl px-6 pt-8 pb-32">
       <div className="text-center mb-24">
         <h2 className="text-4xl md:text-6xl font-medium leading-tight" dangerouslySetInnerHTML={{ __html: t('howItWorks.title') }} />
       </div>

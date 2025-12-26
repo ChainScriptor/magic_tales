@@ -16,6 +16,7 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [uploadedImageBase64, setUploadedImageBase64] = useState<string | null>(null);
+  const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null); // Keep original file for FormData
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [firstBubbleFinished, setFirstBubbleFinished] = useState(false);
@@ -28,12 +29,16 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
   const [characterAge, setCharacterAge] = useState('');
   const [feedbackAccepted, setFeedbackAccepted] = useState(false);
   const [userEmail, setUserEmail] = useState('');
+  const [emailSubmitted, setEmailSubmitted] = useState(false);
+  const [userPhone, setUserPhone] = useState('');
+  const [phoneBubbleFinished, setPhoneBubbleFinished] = useState(false);
 
   const handleFileUpload = (file: File) => {
     const imageUrl = URL.createObjectURL(file);
     setUploadedImage(imageUrl);
+    setUploadedImageFile(file); // Keep the original file for FormData
     
-    // Convert file to base64 for API
+    // Convert file to base64 for display/fallback
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result as string;
@@ -68,26 +73,26 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
   };
 
   const handleAgeSubmit = async () => {
-    if (characterAge.trim() && uploadedImageBase64) {
+    if (characterAge.trim() && uploadedImageFile) {
       setStep(5);
       setIsGenerating(true);
       
       try {
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        const response = await fetch(`${API_URL}/api/image/generate-wizard`, {
+        
+        // Use FormData for multipart/form-data upload
+        const formData = new FormData();
+        formData.append('photo', uploadedImageFile); // Field name must match backend: 'photo'
+
+        const response = await fetch(`${API_URL}/api/face-swap`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            imageBase64: uploadedImageBase64,
-            characterName: characterName,
-            characterAge: characterAge,
-          }),
+          body: formData,
+          // Don't set Content-Type header - browser will set it automatically with boundary
         });
 
         if (!response.ok) {
-          throw new Error('Failed to generate image');
+          const errorData = await response.json();
+          throw new Error(errorData.message || errorData.error || 'Failed to generate image');
         }
 
         const data = await response.json();
@@ -102,7 +107,7 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
         // Fallback to placeholder on error
         setGeneratedImage('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=800&fit=crop');
         setFifthBubbleFinished(true);
-        alert('Failed to generate wizard image. Please try again.');
+        alert(error instanceof Error ? error.message : 'Failed to generate wizard image. Please try again.');
       } finally {
         setIsGenerating(false);
       }
@@ -110,8 +115,8 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
   };
 
   const regenerateImage = async () => {
-    if (!uploadedImageBase64) {
-      console.error('No uploaded image to regenerate from');
+    if (!uploadedImageFile) {
+      console.error('No uploaded image file to regenerate from');
       return;
     }
 
@@ -120,20 +125,20 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
     
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      const response = await fetch(`${API_URL}/api/image/generate-wizard`, {
+      
+      // Use FormData for multipart/form-data upload
+      const formData = new FormData();
+      formData.append('photo', uploadedImageFile); // Use the same original file
+
+      const response = await fetch(`${API_URL}/api/face-swap`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          imageBase64: uploadedImageBase64, // Use the same original image
-          characterName: characterName,
-          characterAge: characterAge,
-        }),
+        body: formData,
+        // Don't set Content-Type header - browser will set it automatically with boundary
       });
 
       if (!response.ok) {
-        throw new Error('Failed to regenerate image');
+        const errorData = await response.json();
+        throw new Error(errorData.message || errorData.error || 'Failed to regenerate image');
       }
 
       const data = await response.json();
@@ -144,7 +149,7 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
       }
     } catch (error) {
       console.error('Error regenerating wizard image:', error);
-      alert('Failed to regenerate image. Please try again.');
+      alert(error instanceof Error ? error.message : 'Failed to regenerate image. Please try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -165,7 +170,19 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
       return;
     }
     console.log('Saving email:', userEmail);
-    // Here you can persist email and proceed
+    setEmailSubmitted(true);
+    setPhoneBubbleFinished(true); // Show phone input immediately after email
+  };
+
+  const submitPhone = () => {
+    // Basic phone validation (at least 10 digits)
+    const phoneDigits = userPhone.replace(/\D/g, '');
+    if (phoneDigits.length < 10) {
+      return;
+    }
+    console.log('Saving phone:', userPhone);
+    // Here you can persist phone and proceed to final step
+    // You could also submit both email and phone to your API here
   };
 
   return (
@@ -378,7 +395,7 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
             )}
 
             {/* Email Capture Prompt after positive feedback */}
-            {feedbackAccepted && (
+            {feedbackAccepted && !emailSubmitted && (
               <div className="mt-6 animate-in fade-in duration-300">
                 <TypingBubble
                   text={t('bookCreation.almostThere')}
@@ -406,6 +423,60 @@ const BookCreation: React.FC<BookCreationProps> = ({ onClose }) => {
                     {t('bookCreation.continue')}
                   </motion.button>
                 </div>
+              </div>
+            )}
+
+            {/* Phone Capture Prompt after email submitted - Chat Style */}
+            {emailSubmitted && (
+              <div className="mt-6 animate-in fade-in duration-300">
+                {/* User's email bubble (right aligned) */}
+                <div className="flex justify-end mb-3">
+                  <div className="max-w-[80%] px-4 py-2.5 bg-[#1a47ff] text-white rounded-2xl rounded-tr-sm">
+                    <p className="text-sm">{userEmail}</p>
+                  </div>
+                </div>
+
+                {/* System phone prompt bubble (left aligned) */}
+                <div className="flex justify-start mb-3">
+                  <TypingBubble
+                    text={t('bookCreation.phonePrompt')}
+                    onFinished={() => setPhoneBubbleFinished(true)}
+                    darkMode={true}
+                  />
+                </div>
+
+                {/* Phone input and terms - shown after bubble finishes */}
+                {phoneBubbleFinished && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-4"
+                  >
+                    <div className="text-center text-sm text-gray-600 mb-3" dangerouslySetInnerHTML={{ __html: t('bookCreation.phoneTerms') }} />
+                    <div className="flex gap-2">
+                      <input
+                        type="tel"
+                        placeholder={t('bookCreation.phonePlaceholder')}
+                        value={userPhone}
+                        onChange={(e) => setUserPhone(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') submitPhone();
+                        }}
+                        className="flex-1 px-4 py-3 bg-white rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#1a47ff] focus:border-transparent text-gray-800 placeholder-gray-400"
+                      />
+                      <motion.button
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        onClick={submitPhone}
+                        className="px-4 py-3 rounded-lg btn-glossy text-white font-semibold flex items-center justify-center"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                        </svg>
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                )}
               </div>
             )}
 

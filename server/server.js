@@ -28,6 +28,7 @@ mongoose.connect(MONGODB_URI)
 // Routes
 app.use('/api/submissions', require('./routes/submissions'));
 app.use('/api/image', require('./routes/imageGeneration'));
+app.use('/api', require('./routes/faceSwap'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

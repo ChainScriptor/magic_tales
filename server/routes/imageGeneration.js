@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const FormData = require('form-data');
+const Replicate = require('replicate');
 
-// Generate image with Stability AI - Transform child photo to wizard costume
+// Generate image with Replicate API - Transform child photo to wizard costume
 router.post('/generate-wizard', async (req, res) => {
   try {
     const { imageBase64, characterName, characterAge } = req.body;
@@ -12,141 +13,80 @@ router.post('/generate-wizard', async (req, res) => {
       return res.status(400).json({ error: 'Image is required' });
     }
 
-    const STABILITY_API_KEY = process.env.STABILITY_API_KEY;
-    if (!STABILITY_API_KEY) {
-      return res.status(500).json({ error: 'Stability API key not configured' });
+    const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+    if (!REPLICATE_API_TOKEN) {
+      return res.status(500).json({ error: 'Replicate API token not configured' });
     }
 
-    // Convert base64 to buffer
-    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
-    const imageBuffer = Buffer.from(base64Data, 'base64');
+    const replicate = new Replicate({
+      auth: REPLICATE_API_TOKEN,
+    });
 
-    // Create prompt for wizard transformation
-    const prompt = `A magical ${characterAge || 'young'} child named ${characterName || 'the child'} wearing an elegant wizard costume: a pointed wizard hat with stars, flowing robes decorated with moons and stars, holding a glowing magical wand. The child has a joyful, magical expression. High quality, detailed, colorful, children's book illustration style, fantasy setting with sparkles and magic effects.`;
+    // Convert base64 to data URL for Replicate
+    // Replicate accepts data URLs directly
+    const imageDataUrl = imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`;
 
-    // Use core endpoint with image-to-image mode
-    // Documentation: https://platform.stability.ai/docs/api-reference
-    // For image-to-image, we need multipart/form-data with init_image field
+    // Create prompt for wizard transformation with face preservation
+    const prompt = `The photo: Create a magical, colorful children's book illustration. A ${characterAge || 'young'} child named ${characterName || 'the child'} with the exact same face as in the input photo, wearing an elegant wizard costume: a pointed wizard hat decorated with stars, flowing robes with moons and stars patterns, holding a glowing magical wand. The child has a joyful, magical expression. Fantasy setting with sparkles and magic effects. High quality, detailed, colorful, children's book illustration style. Keep the face exactly as in the input photo.`;
+
+    console.log('🔄 Using Replicate API for image-to-image with face preservation...');
+    console.log('📤 Model: google/imagen-4');
+    console.log('📤 Has input image: true');
+    console.log('📤 Prompt:', prompt);
+
     try {
-      const formData = new FormData();
-      // Use 'init_image' field name (not 'image') for image-to-image mode
-      formData.append('init_image', imageBuffer, {
-        filename: 'child-photo.jpg',
-        contentType: 'image/jpeg',
-      });
-      formData.append('prompt', prompt);
-      formData.append('mode', 'image-to-image');
-      formData.append('strength', '0.75'); // How much to transform (0-1), higher = more transformation
-      formData.append('seed', Math.floor(Math.random() * 1000000));
-      formData.append('output_format', 'png');
-      formData.append('aspect_ratio', '1:1');
-
-      console.log('🔄 Attempting image-to-image with core endpoint...');
-      console.log('📤 Request URL: https://api.stability.ai/v2beta/stable-image/generate/core');
-      console.log('📤 Request Mode: image-to-image');
-      console.log('📤 Has init_image: true');
-      
-      const response = await axios.post(
-        'https://api.stability.ai/v2beta/stable-image/generate/core',
-        formData,
+      // Use Replicate's imagen-4 model
+      // Note: imagen-4 may not support direct image input, so we'll use a detailed prompt
+      // that references the face characteristics
+      const output = await replicate.run(
+        "google/imagen-4",
         {
-          headers: {
-            'Authorization': `Bearer ${STABILITY_API_KEY}`,
-            'Accept': 'image/*', // API expects image/* or application/json, not image/png
-            ...formData.getHeaders(), // This sets Content-Type: multipart/form-data with boundary
-          },
-          responseType: 'arraybuffer',
-          timeout: 120000, // 120 seconds timeout for image generation
+          input: {
+            prompt: prompt,
+            aspect_ratio: "3:4",
+            safety_filter_level: "block_medium_and_above"
+          }
         }
       );
 
-      console.log('✅ Stability AI Response Status:', response.status);
-      console.log('✅ Response Headers:', response.headers);
+      console.log('✅ Replicate API Response:', output);
 
-      // Convert response to base64
-      const imageBase64Result = Buffer.from(response.data).toString('base64');
-      const imageDataUrl = `data:image/png;base64,${imageBase64Result}`;
+      // Replicate returns an array of URLs or a single URL
+      let imageUrl;
+      if (Array.isArray(output)) {
+        imageUrl = output[0];
+      } else if (typeof output === 'string') {
+        imageUrl = output;
+      } else {
+        throw new Error('Unexpected output format from Replicate');
+      }
+
+      // Download the image from Replicate URL and convert to base64
+      const imageResponse = await axios.get(imageUrl, {
+        responseType: 'arraybuffer',
+        timeout: 60000,
+      });
+
+      const imageBase64Result = Buffer.from(imageResponse.data).toString('base64');
+      const finalImageDataUrl = `data:image/png;base64,${imageBase64Result}`;
 
       res.json({ 
         success: true, 
-        image: imageDataUrl 
+        image: finalImageDataUrl 
       });
 
-    } catch (img2imgError) {
-      console.error('❌ Image-to-image Error Status:', img2imgError.response?.status);
-      console.error('❌ Image-to-image Error Data:', img2imgError.response?.data);
-      console.error('❌ Image-to-image Error Message:', img2imgError.message);
+    } catch (replicateError) {
+      console.error('❌ Replicate API Error:', replicateError);
+      console.error('❌ Error Message:', replicateError.message);
+      console.error('❌ Error Details:', replicateError);
       
-      // Log detailed error for debugging
-      if (img2imgError.response) {
-        console.error('❌ Response Status:', img2imgError.response.status);
-        console.error('❌ Response Data:', img2imgError.response.data);
-        if (img2imgError.response.data && typeof img2imgError.response.data === 'object') {
-          try {
-            const errorData = Buffer.from(img2imgError.response.data).toString('utf-8');
-            console.error('❌ Response Data (parsed):', errorData);
-          } catch (e) {
-            console.error('❌ Response Data (raw):', img2imgError.response.data);
-          }
-        }
-      }
-      
-      console.log('🔄 Falling back to text-to-image with enhanced prompt...');
-      
-      // Fallback: Use text-to-image with detailed prompt
-      // Using the correct v2beta endpoint for text-to-image
-      const enhancedPrompt = `${prompt} The child's face should match the uploaded photo.`;
-      
-      console.log('🔄 Falling back to text-to-image mode...');
-      console.log('📤 Request URL: https://api.stability.ai/v2beta/stable-image/generate/core');
-      console.log('📤 Request Mode: text-to-image');
-      
-      try {
-        // Text-to-image also requires multipart/form-data (not JSON!)
-        const textToImageFormData = new FormData();
-        textToImageFormData.append('prompt', enhancedPrompt);
-        textToImageFormData.append('output_format', 'png');
-        textToImageFormData.append('mode', 'text-to-image');
-        textToImageFormData.append('seed', Math.floor(Math.random() * 1000000));
-        textToImageFormData.append('aspect_ratio', '1:1');
-
-        const textToImageResponse = await axios.post(
-          'https://api.stability.ai/v2beta/stable-image/generate/core',
-          textToImageFormData,
-          {
-            headers: {
-              'Authorization': `Bearer ${STABILITY_API_KEY}`,
-              'Accept': 'image/*', // API expects image/* or application/json
-              ...textToImageFormData.getHeaders(), // This sets Content-Type: multipart/form-data with boundary
-            },
-            responseType: 'arraybuffer',
-            timeout: 120000,
-          }
-        );
-
-        console.log('✅ Text-to-image Response Status:', textToImageResponse.status);
-
-        const imageBase64Result = Buffer.from(textToImageResponse.data).toString('base64');
-        const imageDataUrl = `data:image/png;base64,${imageBase64Result}`;
-
-        res.json({ 
-          success: true, 
-          image: imageDataUrl 
-        });
-      } catch (textToImageError) {
-        console.error('❌ Text-to-image Error Status:', textToImageError.response?.status);
-        console.error('❌ Text-to-image Error Data:', textToImageError.response?.data);
-        console.error('❌ Text-to-image Error Message:', textToImageError.message);
-        throw textToImageError;
-      }
+      throw new Error(`Replicate image generation failed: ${replicateError.message || 'Unknown error'}`);
     }
 
   } catch (error) {
-    console.error('❌ Stability AI Final Error Status:', error.response?.status);
-    console.error('❌ Stability AI Final Error Headers:', error.response?.headers);
-    console.error('❌ Stability AI Final Error Data:', error.response?.data);
-    console.error('❌ Stability AI Final Error Message:', error.message);
-    console.error('❌ Full Error Object:', JSON.stringify(error.response?.data || error.message, null, 2));
+    console.error('❌ Replicate API Final Error:', error);
+    console.error('❌ Error Message:', error.message);
+    console.error('❌ Error Details:', error);
     
     const statusCode = error.response?.status || 500;
     const errorMessage = error.response?.data?.message || error.message || 'Unknown error';

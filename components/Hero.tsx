@@ -10,7 +10,7 @@ interface HeroProps {
 const Hero: React.FC<HeroProps> = ({ onPreviewBook }) => {
   const { t } = useLanguage();
   return (
-    <div className="container mx-auto max-w-7xl px-6 pt-10 pb-24">
+    <div className="container mx-auto max-w-7xl px-6 pt-10 pb-8">
       {/* Navigation Row */}
       <nav className="flex items-center justify-between mb-20 md:mb-32">
         {/* Logo */}
